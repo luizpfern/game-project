@@ -14,6 +14,8 @@ export default class Phase1Scene extends Phaser.Scene {
   }
 
   create() {
+    // Flag para controle de surgimento
+    this.spawning = true;
     // Cor de fundo (branco, igual ao desenho)
     this.cameras.main.setBackgroundColor('#fff');
     // Matar o jogador se cair no abismo (abaixo do chão)
@@ -42,6 +44,13 @@ export default class Phase1Scene extends Phaser.Scene {
 
 
     // Animações do personagem (ajuste os frames conforme seu spritesheet)
+    // Animação de surgimento (ajuste os frames conforme seu spritesheet)
+    this.anims.create({
+      key: 'spawn',
+      frames: this.anims.generateFrameNumbers('nico', { start: 700, end: 709 }), // ajuste se necessário
+      frameRate: 10,
+      repeat: 0
+    });
     this.anims.create({
       key: 'idle',
       frames: this.anims.generateFrameNumbers('nico', { start: 70, end: 77 }),
@@ -56,20 +65,24 @@ export default class Phase1Scene extends Phaser.Scene {
     });
     this.anims.create({
       key: 'jump',
-      frames: [ { key: 'nico', frame: 830 } ],
+      frames: [ { key: 'nico', frame: 250 } ],
       frameRate: 1,
       repeat: -1
     });
     this.anims.create({
       key: 'fall',
-      frames: [ { key: 'nico', frame: 830 } ],
+      frames: [ { key: 'nico', frame: 385 } ],
       frameRate: 1,
       repeat: -1
     });
 
     // Player (sprite)
-    this.player = this.physics.add.sprite(100, 500, 'nico');
-    this.player.anims.play('idle'); // Começa parado
+    this.player = this.physics.add.sprite(100, 530, 'nico');
+    this.player.anims.play('spawn'); // Começa com animação de surgimento
+    this.player.once(Phaser.Animations.Events.ANIMATION_COMPLETE_KEY + 'spawn', () => {
+      this.spawning = false;
+      this.player.anims.play('idle');
+    });
     this.player.setScale(2); // Dobra o tamanho mantendo a proporção
     this.player.setCollideWorldBounds(true);
     this.player.setBounce(0); // Sem bounce ao cair
@@ -79,6 +92,13 @@ export default class Phase1Scene extends Phaser.Scene {
 
     // Controles
     this.cursors = this.input.keyboard.createCursorKeys();
+    // Adiciona suporte ao WASD
+    this.keys = this.input.keyboard.addKeys({
+      up: Phaser.Input.Keyboard.KeyCodes.W,
+      left: Phaser.Input.Keyboard.KeyCodes.A,
+      down: Phaser.Input.Keyboard.KeyCodes.S,
+      right: Phaser.Input.Keyboard.KeyCodes.D
+    });
 
     // Moedas (círculos amarelos) em posições fiéis ao desenho
     this.coins = this.physics.add.staticGroup();
@@ -199,18 +219,23 @@ export default class Phase1Scene extends Phaser.Scene {
     const body = this.player.body;
     body.setVelocityX(0);
 
+    // Bloqueia controles durante o surgimento
+    if (this.spawning) {
+      return;
+    }
+
     // Movimento do jogador
     let moving = false;
-    if (this.cursors.left.isDown) {
+    if (this.cursors.left.isDown || this.keys.left.isDown) {
       body.setVelocityX(-160);
       this.player.setFlipX(true); // vira para a esquerda
       moving = true;
-    } else if (this.cursors.right.isDown) {
+    } else if (this.cursors.right.isDown || this.keys.right.isDown) {
       body.setVelocityX(160);
       this.player.setFlipX(false); // vira para a direita
       moving = true;
     }
-    if (this.cursors.up.isDown && body.blocked.down) {
+    if ((this.cursors.up.isDown || this.keys.up.isDown) && body.blocked.down) {
       body.setVelocityY(-480); // salto mais alto
     }
 
