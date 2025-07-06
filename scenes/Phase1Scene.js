@@ -32,7 +32,7 @@ export default class Phase1Scene extends Phaser.Scene {
     const scale0 = screenH / bg0Tex.height;
     const scale1 = screenH / bg1Tex.height;
     // Largura real após escala
-    const scaledBg0Width = bg0Tex.width * scale0;
+    const scaledBg0Width = bg0Tex.width * scale0; 
     const scaledBg1Width = bg1Tex.width * scale1;
     // Quantas repetições são necessárias para cobrir o mapa inteiro
     const repeatCount0 = Math.ceil(this.mapWidth / scaledBg0Width);
