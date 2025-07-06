@@ -11,19 +11,51 @@ export default class Phase1Scene extends Phaser.Scene {
       frameWidth: 32, // ajuste para o tamanho real do frame do seu sprite
       frameHeight: 32 // ajuste para o tamanho real do frame do seu sprite
     });
+    // Carrega as imagens de fundo para parallax
+    this.load.image('bg_0', 'assets/world/bg_0.png');
+    this.load.image('bg_1', 'assets/world/bg_1.png');
   }
 
   create() {
     // Flag para controle de surgimento
     this.spawning = true;
+
+    // Defina o tamanho do mapa aqui para facilitar testes e ajustes
+    this.mapWidth = 2700; // Altere aqui para testar diferentes larguras
+    this.mapHeight = 620; // Altere aqui para testar diferentes alturas
+
+    // Adiciona camadas de fundo para parallax, repetindo horizontalmente até o final do mapa
+    const bg0Tex = this.textures.get('bg_0').getSourceImage();
+    const bg1Tex = this.textures.get('bg_1').getSourceImage();
+    const screenH = this.cameras.main.height;
+    // Calcula o fator de escala para altura da tela
+    const scale0 = screenH / bg0Tex.height;
+    const scale1 = screenH / bg1Tex.height;
+    // Largura real após escala
+    const scaledBg0Width = bg0Tex.width * scale0;
+    const scaledBg1Width = bg1Tex.width * scale1;
+    // Quantas repetições são necessárias para cobrir o mapa inteiro
+    const repeatCount0 = Math.ceil(this.mapWidth / scaledBg0Width);
+    const repeatCount1 = Math.ceil(this.mapWidth / scaledBg1Width);
+    this.bg0s = [];
+    this.bg1s = [];
+    for (let i = 0; i < repeatCount0; i++) {
+      const bg0 = this.add.image(i * scaledBg0Width, 0, 'bg_0').setOrigin(0, 0).setScrollFactor(0.2);
+      bg0.setScale(scale0);
+      this.bg0s.push(bg0);
+    }
+    for (let i = 0; i < repeatCount1; i++) {
+      const bg1 = this.add.image(i * scaledBg1Width, 0, 'bg_1').setOrigin(0, 0).setScrollFactor(0.5);
+      bg1.setScale(scale1);
+      this.bg1s.push(bg1);
+    }
     // Cor de fundo (branco, igual ao desenho)
     this.cameras.main.setBackgroundColor('#fff');
     // Matar o jogador se cair no abismo (abaixo do chão)
     this.playerIsDead = false;
 
     // Largura do mapa (ajustado para o novo mapa fiel ao desenho)
-    const mapWidth = 2700;
-    const mapHeight = 620;
+    // Agora usa this.mapWidth e this.mapHeight
 
     // Grupo de plataformas fixas
     this.platforms = this.physics.add.staticGroup();
@@ -38,9 +70,6 @@ export default class Phase1Scene extends Phaser.Scene {
         .setOrigin(0)
         .refreshBody();
     });
-
-
-
 
 
     // Animações do personagem (ajuste os frames conforme seu spritesheet)
@@ -211,8 +240,8 @@ export default class Phase1Scene extends Phaser.Scene {
     });
 
     // Configura limites do mundo e câmera dinâmica
-    this.physics.world.setBounds(0, 0, mapWidth, mapHeight);
-    this.cameras.main.setBounds(0, 0, mapWidth, mapHeight);
+    this.physics.world.setBounds(0, 0, this.mapWidth, this.mapHeight);
+    this.cameras.main.setBounds(0, 0, this.mapWidth, this.mapHeight);
     this.cameras.main.startFollow(this.player, true, 0.08, 0.08);
 
     // Flag para saber se o jogador pode terminar
@@ -223,6 +252,8 @@ export default class Phase1Scene extends Phaser.Scene {
 
     const body = this.player.body;
     body.setVelocityX(0);
+
+    // Parallax agora é automático via setScrollFactor
 
     // Ajusta a hitbox conforme o estado (no ar ou no chão)
     if (!body.blocked.down) {
@@ -297,7 +328,7 @@ export default class Phase1Scene extends Phaser.Scene {
     }
 
     // Verifica se o jogador chegou ao final do mapa e pegou todas as moedas
-    if (this.allCoinsCollected && this.player.x > 4000) {
+    if (this.allCoinsCollected && this.player.x > this.mapWidth - 100) {
       // Finaliza a fase (pode trocar de cena, mostrar mensagem, etc)
       this.scene.pause();
       this.add.text(this.player.x - 100, 200, 'Fase Completa!', { fontSize: '32px', color: '#fff' });
