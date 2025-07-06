@@ -77,7 +77,7 @@ export default class Phase1Scene extends Phaser.Scene {
     });
 
     // Player (sprite)
-    this.player = this.physics.add.sprite(100, 530, 'nico');
+    this.player = this.physics.add.sprite(100, 515, 'nico');
     this.player.anims.play('spawn'); // Começa com animação de surgimento
     this.player.once(Phaser.Animations.Events.ANIMATION_COMPLETE_KEY + 'spawn', () => {
       this.spawning = false;
@@ -90,16 +90,7 @@ export default class Phase1Scene extends Phaser.Scene {
     this.player.setCollideWorldBounds(true);
     this.player.setBounce(0); // Sem bounce ao cair
 
-    // DEBUG: Desenha a hitbox do player
-    this.playerHitboxDebug = this.add.graphics();
-    this.playerHitboxDebug.fillStyle(0x00ff00, 0.3); // verde semi-transparente
-    // Desenha inicialmente
-    this.playerHitboxDebug.fillRect(
-      this.player.x - this.player.displayWidth / 2,
-      this.player.y - this.player.displayHeight / 2,
-      this.player.displayWidth,
-      this.player.displayHeight
-    );
+    // ...removido debug da hitbox...
 
     // Colisão com plataformas
     this.physics.add.collider(this.player, this.platforms);
@@ -244,15 +235,7 @@ export default class Phase1Scene extends Phaser.Scene {
       this.player.setOffset(7, 16);
     }
 
-    // DEBUG: Atualiza a hitbox física real do player
-    this.playerHitboxDebug.clear();
-    this.playerHitboxDebug.fillStyle(0x00ff00, 0.3);
-    this.playerHitboxDebug.fillRect(
-      this.player.body.x,
-      this.player.body.y,
-      this.player.body.width,
-      this.player.body.height
-    );
+    // ...removido debug da hitbox...
 
     // Bloqueia controles durante o surgimento
     if (this.spawning) {
