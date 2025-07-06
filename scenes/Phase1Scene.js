@@ -83,9 +83,23 @@ export default class Phase1Scene extends Phaser.Scene {
       this.spawning = false;
       this.player.anims.play('idle');
     });
-    this.player.setScale(2); // Dobra o tamanho mantendo a proporção
+    this.player.setScale(3); // Dobra o tamanho mantendo a proporção
+    // Ajusta o hitbox para coincidir com o sprite (32x32, escalado para 64x64)
+    this.player.setSize(18, 16); // hitbox menor para o corpo do gato
+    this.player.setOffset(7, 16); // centraliza e desce a hitbox
     this.player.setCollideWorldBounds(true);
     this.player.setBounce(0); // Sem bounce ao cair
+
+    // DEBUG: Desenha a hitbox do player
+    this.playerHitboxDebug = this.add.graphics();
+    this.playerHitboxDebug.fillStyle(0x00ff00, 0.3); // verde semi-transparente
+    // Desenha inicialmente
+    this.playerHitboxDebug.fillRect(
+      this.player.x - this.player.displayWidth / 2,
+      this.player.y - this.player.displayHeight / 2,
+      this.player.displayWidth,
+      this.player.displayHeight
+    );
 
     // Colisão com plataformas
     this.physics.add.collider(this.player, this.platforms);
@@ -218,6 +232,27 @@ export default class Phase1Scene extends Phaser.Scene {
 
     const body = this.player.body;
     body.setVelocityX(0);
+
+    // Ajusta a hitbox conforme o estado (no ar ou no chão)
+    if (!body.blocked.down) {
+      // No ar: hitbox como estava antes
+      this.player.setSize(18, 14);
+      this.player.setOffset(7, 18);
+    } else {
+      // No chão: hitbox menor
+      this.player.setSize(18, 16);
+      this.player.setOffset(7, 16);
+    }
+
+    // DEBUG: Atualiza a hitbox física real do player
+    this.playerHitboxDebug.clear();
+    this.playerHitboxDebug.fillStyle(0x00ff00, 0.3);
+    this.playerHitboxDebug.fillRect(
+      this.player.body.x,
+      this.player.body.y,
+      this.player.body.width,
+      this.player.body.height
+    );
 
     // Bloqueia controles durante o surgimento
     if (this.spawning) {
