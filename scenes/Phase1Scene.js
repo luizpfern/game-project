@@ -6,6 +6,10 @@ export default class Phase1Scene extends Phaser.Scene {
   }
 
   preload() {
+    // carrega o novo mapa e tileset
+    this.load.tilemapTiledJSON('mapa', 'assets/world/untitled.json');
+    this.load.image('tiles', 'assets/world/tiles and background_foreground (new)/tileset_32x32(new).png');
+
     // Carrega o sprite do personagem principal como spritesheet (ajuste frameWidth/frameHeight conforme seu sprite)
     this.load.spritesheet('nico', 'assets/sprites/nico.png', {
       frameWidth: 32, // ajuste para o tamanho real do frame do seu sprite
@@ -20,23 +24,18 @@ export default class Phase1Scene extends Phaser.Scene {
     // Flag para controle de surgimento
     this.spawning = true;
 
-    // Defina o tamanho do mapa aqui para facilitar testes e ajustes
-    this.mapWidth = 2700; // Altere aqui para testar diferentes larguras
-    this.mapHeight = 620; // Altere aqui para testar diferentes alturas
-
-    // Adiciona camadas de fundo para parallax, repetindo horizontalmente até o final do mapa
+    // Fundo parallax (agora ANTES do mapa)
     const bg0Tex = this.textures.get('bg_0').getSourceImage();
     const bg1Tex = this.textures.get('bg_1').getSourceImage();
     const screenH = this.cameras.main.height;
-    // Calcula o fator de escala para altura da tela
+    // Valores temporários para largura do mapa, substituídos depois
+    let tempMapWidth = 3000;
     const scale0 = screenH / bg0Tex.height;
     const scale1 = screenH / bg1Tex.height;
-    // Largura real após escala
-    const scaledBg0Width = bg0Tex.width * scale0; 
+    const scaledBg0Width = bg0Tex.width * scale0;
     const scaledBg1Width = bg1Tex.width * scale1;
-    // Quantas repetições são necessárias para cobrir o mapa inteiro
-    const repeatCount0 = Math.ceil(this.mapWidth / scaledBg0Width);
-    const repeatCount1 = Math.ceil(this.mapWidth / scaledBg1Width);
+    const repeatCount0 = Math.ceil(tempMapWidth / scaledBg0Width);
+    const repeatCount1 = Math.ceil(tempMapWidth / scaledBg1Width);
     this.bg0s = [];
     this.bg1s = [];
     for (let i = 0; i < repeatCount0; i++) {
@@ -49,27 +48,28 @@ export default class Phase1Scene extends Phaser.Scene {
       bg1.setScale(scale1);
       this.bg1s.push(bg1);
     }
-    // Cor de fundo (branco, igual ao desenho)
     this.cameras.main.setBackgroundColor('#fff');
-    // Matar o jogador se cair no abismo (abaixo do chão)
     this.playerIsDead = false;
 
-    // Largura do mapa (ajustado para o novo mapa fiel ao desenho)
-    // Agora usa this.mapWidth e this.mapHeight
+    // --- MAPA DO TILED ---
+    // Cria o tilemap
+    const map = this.make.tilemap({ key: 'mapa' });
+    // O nome do tileset deve ser igual ao nome do tileset no Tiled (aqui: 'ground')
+    const tileset = map.addTilesetImage('ground', 'tiles');
+    // Ajuste o nome da camada conforme está no seu untitled.json (ex: 'Tile Layer 1', 'ground', etc)
+    const layer = map.createLayer('Tile Layer 1', tileset, 0, 0);
 
-    // Grupo de plataformas fixas
-    this.platforms = this.physics.add.staticGroup();
+    // Ativa colisão para tiles marcados como colidíveis no Tiled
+    const result = layer.setCollisionByProperty({ collides: true });
 
-    // Chão (ajustado para o desenho)
-    this.platforms.create(400 / 2, 560, null).setDisplaySize(400, 60).setOrigin(0, 0).refreshBody();
 
-    // Plataformas no ar (usando arquivo externo)
-    platformsMap.forEach(p => {
-      this.platforms.create(p.x, p.y, null)
-        .setDisplaySize(p.width, p.height)
-        .setOrigin(0)
-        .refreshBody();
-    });
+    // Ajusta limites do mundo para o tamanho do mapa
+    this.mapWidth = map.widthInPixels;
+    this.mapHeight = map.heightInPixels;
+
+    // --- COLISÃO DO PLAYER COM O MAPA ---
+    // Plataformas agora são o layer do tilemap
+    this.platforms = layer;
 
 
     // Animações do personagem (ajuste os frames conforme seu spritesheet)
@@ -106,7 +106,7 @@ export default class Phase1Scene extends Phaser.Scene {
     });
 
     // Player (sprite)
-    this.player = this.physics.add.sprite(100, 515, 'nico');
+    this.player = this.physics.add.sprite(100, 435, 'nico');
     this.player.anims.play('spawn'); // Começa com animação de surgimento
     this.player.once(Phaser.Animations.Events.ANIMATION_COMPLETE_KEY + 'spawn', () => {
       this.spawning = false;
@@ -191,24 +191,28 @@ export default class Phase1Scene extends Phaser.Scene {
     });
 
     this.physics.add.collider(this.enemies, this.platforms, (enemy, platform) => {
-      // Troca de direção APENAS se colidir com a lateral
+      // Só executa se platform.body existir (tilemap layer pode passar tile sem body)
+      if (!platform.body) return;
       const idx = this.enemySprites.indexOf(enemy);
       if (idx !== -1 && this.enemyData[idx].active) {
-        // Verifica se colidiu com a lateral (esquerda ou direita)
-        // Se a posição do inimigo está "encostada" na lateral da plataforma
+        // Detecta colisão lateral real
+        const prevDir = this.enemyData[idx].direction;
         const enemyLeft = enemy.body.left;
         const enemyRight = enemy.body.right;
         const platLeft = platform.body.left;
         const platRight = platform.body.right;
         // Tolerância de 2 pixels para evitar bugs de física
-        if (Math.abs(enemyRight - platLeft) < 2 && this.enemyData[idx].direction > 0) {
-          // Bateu com o lado direito
+        if (Math.abs(enemyRight - platLeft) < 2 && prevDir > 0) {
           this.enemyData[idx].direction = -1;
           enemy.body.setVelocityX(-120);
-        } else if (Math.abs(enemyLeft - platRight) < 2 && this.enemyData[idx].direction < 0) {
-          // Bateu com o lado esquerdo
+          console.log('[DEBUG] Inimigo bateu na direita e virou para esquerda', idx);
+        } else if (Math.abs(enemyLeft - platRight) < 2 && prevDir < 0) {
           this.enemyData[idx].direction = 1;
           enemy.body.setVelocityX(120);
+          console.log('[DEBUG] Inimigo bateu na esquerda e virou para direita', idx);
+        } else {
+          // Colisão vertical, mantém direção
+          enemy.body.setVelocityX(this.enemyData[idx].direction * 120);
         }
       }
     });
