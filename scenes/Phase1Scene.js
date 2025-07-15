@@ -1,6 +1,6 @@
 
 import Player from '../managers/Player.js';
-import EnemyManager1 from '../managers/EnemyManager1.js';
+import EnemyManager from '../managers/EnemyManager.js';
 import CoinManager from '../managers/CoinManager.js';
 
 export default class Phase1Scene extends Phaser.Scene {
@@ -111,7 +111,7 @@ export default class Phase1Scene extends Phaser.Scene {
       { x: 2150, y: 370, active: false, direction: -1, type: 'big' },
       { x: 2470, y: 520, active: false, direction: -1, type: 'normal' }
     ];
-    this.enemyManager = new EnemyManager1(this, this.platforms, enemyData);
+    this.enemyManager = new EnemyManager(this, this.platforms, enemyData);
     this.enemyManager.setupPlayerCollider(this.player, () => {
       this.scene.restart();
     });
