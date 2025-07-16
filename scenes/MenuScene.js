@@ -86,7 +86,7 @@ export default class MenuScene extends Phaser.Scene {
       graphics.fillPath();
       radius += 40;
       if (radius < maxRadius) {
-        this.time.delayedCall(18, fechar);
+        this.time.delayedCall(20, fechar);
       } else {
         graphics.clear();
         graphics.fillStyle(0x000000, 1);

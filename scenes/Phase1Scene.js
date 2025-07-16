@@ -169,7 +169,7 @@ export default class Phase1Scene extends Phaser.Scene {
       graphics.fillPath();
       radius -= 40;
       if (radius > minRadius) {
-        this.time.delayedCall(2, abrir);
+        this.time.delayedCall(20, abrir);
       } else {
         graphics.destroy();
       }
