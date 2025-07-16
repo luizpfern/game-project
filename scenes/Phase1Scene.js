@@ -141,28 +141,8 @@ export default class Phase1Scene extends Phaser.Scene {
     // Matar o jogador se cair no abismo (abaixo do mapa)
     if (!this.playerIsDead && this.player.y > 600) {
       this.playerIsDead = true;
-      this.player.setVelocity(0, 0);
-      this.player.anims && this.player.anims.stop && this.player.anims.stop();
-      if (this.player.setFrame) {
-        this.player.setFrame('dead'); // frame de morte, ajuste conforme seu spritesheet
-      }
-      this.physics.pause();
-      this.mostrarBotaoReiniciar();
-    }
-  mostrarBotaoReiniciar() {
-    // Botão centralizado
-    const btn = this.add.text(400, 300, 'REINICIAR', {
-      fontSize: '36px',
-      fontFamily: 'Arial',
-      color: '#fff',
-      backgroundColor: '#ef233c',
-      padding: { x: 30, y: 15 },
-      align: 'center',
-    }).setOrigin(0.5).setInteractive({ useHandCursor: true });
-    btn.on('pointerdown', () => {
       this.scene.restart();
-    });
-  }
+    }
 
     // Atualiza inimigos
     this.enemyManager.update(this.player);
@@ -189,7 +169,7 @@ export default class Phase1Scene extends Phaser.Scene {
       graphics.fillPath();
       radius -= 40;
       if (radius > minRadius) {
-        this.time.delayedCall(20, abrir);
+        this.time.delayedCall(2, abrir);
       } else {
         graphics.destroy();
       }
