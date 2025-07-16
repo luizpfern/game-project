@@ -23,8 +23,10 @@ export default class Phase1Scene extends Phaser.Scene {
   }
 
   create() {
-    // Flag para controle de surgimento
-    this.spawning = true;
+  // Efeito Sonic Mania: círculo preto sólido diminui do centro ao iniciar
+  this.circuloTransicaoSonicAbrir();
+  // Flag para controle de surgimento
+  this.spawning = true;
 
     // Fundo parallax (agora ANTES do mapa)
     const bg0Tex = this.textures.get('bg_0').getSourceImage();
@@ -139,8 +141,28 @@ export default class Phase1Scene extends Phaser.Scene {
     // Matar o jogador se cair no abismo (abaixo do mapa)
     if (!this.playerIsDead && this.player.y > 600) {
       this.playerIsDead = true;
-      this.scene.restart();
+      this.player.setVelocity(0, 0);
+      this.player.anims && this.player.anims.stop && this.player.anims.stop();
+      if (this.player.setFrame) {
+        this.player.setFrame('dead'); // frame de morte, ajuste conforme seu spritesheet
+      }
+      this.physics.pause();
+      this.mostrarBotaoReiniciar();
     }
+  mostrarBotaoReiniciar() {
+    // Botão centralizado
+    const btn = this.add.text(400, 300, 'REINICIAR', {
+      fontSize: '36px',
+      fontFamily: 'Arial',
+      color: '#fff',
+      backgroundColor: '#ef233c',
+      padding: { x: 30, y: 15 },
+      align: 'center',
+    }).setOrigin(0.5).setInteractive({ useHandCursor: true });
+    btn.on('pointerdown', () => {
+      this.scene.restart();
+    });
+  }
 
     // Atualiza inimigos
     this.enemyManager.update(this.player);
@@ -149,12 +171,29 @@ export default class Phase1Scene extends Phaser.Scene {
     if (!this.allCoinsCollected && this.coinManager.countActive() === 0) {
       this.allCoinsCollected = true;
     }
+  }
 
-    // Verifica se o jogador chegou ao final do mapa e pegou todas as moedas
-    if (this.allCoinsCollected && this.player.x > this.mapWidth - 100) {
-      // Finaliza a fase (pode trocar de cena, mostrar mensagem, etc)
-      this.scene.pause();
-      this.add.text(this.player.x - 100, 200, 'Fase Completa!', { fontSize: '32px', color: '#fff' });
-    }
+  circuloTransicaoSonicAbrir() {
+    const graphics = this.add.graphics();
+    let radius = 900;
+    const minRadius = 0;
+    const centerX = 400;
+    const centerY = 300;
+    graphics.setDepth(1000);
+    const abrir = () => {
+      graphics.clear();
+      graphics.fillStyle(0x000000, 1);
+      graphics.beginPath();
+      graphics.arc(centerX, centerY, radius, 0, Math.PI * 2);
+      graphics.closePath();
+      graphics.fillPath();
+      radius -= 40;
+      if (radius > minRadius) {
+        this.time.delayedCall(20, abrir);
+      } else {
+        graphics.destroy();
+      }
+    };
+    abrir();
   }
 }

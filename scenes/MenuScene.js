@@ -63,7 +63,37 @@ export default class MenuScene extends Phaser.Scene {
     // Botão "JOGAR" como imagem
     const playBtnImg = this.add.image(400, 370, 'menu-btn').setOrigin(0.5).setScale(0.2).setInteractive({ useHandCursor: true });
     playBtnImg.on('pointerdown', () => {
-      this.scene.start('Phase1Scene');
+      this.circuloTransicaoSonic(() => {
+        this.scene.start('Phase1Scene');
+      });
     });
+  }
+
+  // Efeito Sonic Mania: círculo preto sólido cresce do centro
+  circuloTransicaoSonic(callback) {
+    const graphics = this.add.graphics();
+    let radius = 0;
+    const maxRadius = 900;
+    const centerX = 400;
+    const centerY = 300;
+    graphics.setDepth(1000);
+    const fechar = () => {
+      graphics.clear();
+      graphics.fillStyle(0x000000, 1);
+      graphics.beginPath();
+      graphics.arc(centerX, centerY, radius, 0, Math.PI * 2);
+      graphics.closePath();
+      graphics.fillPath();
+      radius += 40;
+      if (radius < maxRadius) {
+        this.time.delayedCall(18, fechar);
+      } else {
+        graphics.clear();
+        graphics.fillStyle(0x000000, 1);
+        graphics.fillRect(0, 0, 800, 600);
+        callback();
+      }
+    };
+    fechar();
   }
 }
