@@ -9,6 +9,11 @@ export default class MenuScene extends Phaser.Scene {
     this.load.image('menu-bg', 'assets/menu/menu-bg.png');
     this.load.image('menu-title', 'assets/menu/menu-title.png');
     this.load.image('menu-nico', 'assets/menu/menu-nico.png');
+    this.load.image('menu-btn', 'assets/menu/menu-btn.png');
+    // Carrega música e ícones de mute
+    this.load.audio('menu-music', 'assets/sounds/music.mp3');
+    this.load.image('mute', 'assets/menu/menu-mute-icon.png');
+    this.load.image('unmute', 'assets/menu/menu-sound-icon.png');
   }
 
   create() {
@@ -19,6 +24,19 @@ export default class MenuScene extends Phaser.Scene {
     const bgScaleY = 600 / bgImg.height;
     const bgScale = Math.max(bgScaleX, bgScaleY); // cobre toda a tela
     this.add.image(400, 300, 'menu-bg').setScrollFactor(0).setScale(bgScale);
+
+    // Música de fundo
+    this.menuMusic = this.sound.add('menu-music', { loop: true, volume: 0.1 });
+    this.menuMusic.play();
+
+    // Botão mute/desmute
+    let isMuted = false;
+    const muteBtn = this.add.image(760, 40, 'unmute').setOrigin(0.5).setScale(0.08).setInteractive({ useHandCursor: true });
+    muteBtn.on('pointerdown', () => {
+      isMuted = !isMuted;
+      this.menuMusic.setMute(isMuted);
+      muteBtn.setTexture(isMuted ? 'mute' : 'unmute');
+    });
 
     // Título como imagem, ajustando escala para ficar maior em destaque
     const titleTargetWidth = 400;
@@ -42,17 +60,9 @@ export default class MenuScene extends Phaser.Scene {
       ease: 'Sine.easeInOut',
     });
 
-    // Botão "JOGAR"
-    const playButton = this.add.text(400, 320, '▶ JOGAR', {
-      fontSize: '32px',
-      fontFamily: 'Arial',
-      color: '#ffffff',
-      backgroundColor: '#ef233c',
-      padding: { x: 30, y: 10 }
-    }).setOrigin(0.5);
-
-    playButton.setInteractive({ useHandCursor: true });
-    playButton.on('pointerdown', () => {
+    // Botão "JOGAR" como imagem
+    const playBtnImg = this.add.image(400, 370, 'menu-btn').setOrigin(0.5).setScale(0.2).setInteractive({ useHandCursor: true });
+    playBtnImg.on('pointerdown', () => {
       this.scene.start('Phase1Scene');
     });
   }
