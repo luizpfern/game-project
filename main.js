@@ -16,6 +16,9 @@ const config = {
       debug: false
     }
   },
+  input: {
+    gamepad: true
+  },
   scene: [MenuScene, Phase1Scene],
   scale: {
     mode: Phaser.Scale.FIT,
