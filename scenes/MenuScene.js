@@ -26,7 +26,7 @@ export default class MenuScene extends Phaser.Scene {
     this.add.image(400, 300, 'menu-bg').setScrollFactor(0).setScale(bgScale);
 
     // Música de fundo
-    this.menuMusic = this.sound.add('menu-music', { loop: true, volume: 0.1 });
+    this.menuMusic = this.sound.add('menu-music', { loop: true, volume: 0 });
     this.menuMusic.play();
 
     // Botão mute/desmute
