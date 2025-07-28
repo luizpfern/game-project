@@ -20,6 +20,7 @@ export default class Phase1Scene extends Phaser.Scene {
     
     // Carrega o sprite do personagem principal como spritesheet (ajuste frameWidth/frameHeight conforme seu sprite)
     Player.preload(this);
+    EnemyManager.preload(this);
   }
 
   create() {

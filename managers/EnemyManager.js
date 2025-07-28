@@ -1,5 +1,4 @@
-
-export default class EnemyManager1 {
+export default class EnemyManager {
   constructor(scene, platforms, enemyData) {
     this.scene = scene;
     this.platforms = platforms;
@@ -7,19 +6,62 @@ export default class EnemyManager1 {
     // Recebe a lista de inimigos do mapa
     this.enemyData = enemyData || [];
     this.enemySprites = [];
+    this.createAnimations();
     this.createEnemies();
     this.setupColliders();
+  }
+
+  static preload(scene) {
+    scene.load.spritesheet('mushroom_idle', 'assets/world/enemies sprites/mushroom/mushroom_crushed_anim_strip_6.png', {
+      frameWidth: 16,
+      frameHeight: 16
+    });
+    scene.load.spritesheet('mushroom_walk', 'assets/world/enemies sprites/mushroom/mushroom_walk_anim_strip_8.png', {
+      frameWidth: 16,
+      frameHeight: 16
+    });
+    scene.load.spritesheet('mushroom_death', 'assets/world/enemies sprites/mushroom/mushroom_death_anim_strip_6.png', {
+      frameWidth: 16,
+      frameHeight: 16
+    });
+  }
+
+  createAnimations() {
+    // Cria animação idle do cogumelo se ainda não existir
+    if (!this.scene.anims.exists('mushroom_idle')) {
+      this.scene.anims.create({
+        key: 'mushroom_idle',
+        frames: this.scene.anims.generateFrameNumbers('mushroom_idle', { start: 0, end: 5 }),
+        frameRate: 4,
+        repeat: -1
+      });
+    }
+    // Cria animação andando
+    if (!this.scene.anims.exists('mushroom_walk')) {
+      this.scene.anims.create({
+        key: 'mushroom_walk',
+        frames: this.scene.anims.generateFrameNumbers('mushroom_walk', { start: 0, end: 5 }),
+        frameRate: 8,
+        repeat: -1
+      });
+    }
+    // Cria animação de morte
+    if (!this.scene.anims.exists('mushroom_death')) {
+      this.scene.anims.create({
+        key: 'mushroom_death',
+        frames: this.scene.anims.generateFrameNumbers('mushroom_death', { start: 0, end: 5 }),
+        frameRate: 10,
+        repeat: 0
+      });
+    }
   }
 
   createEnemies() {
     this.enemyData.forEach((data, i) => {
       let enemy;
-      if (data.type === 'big') {
-        enemy = this.scene.add.rectangle(data.x, data.y, 32, 64, 0xff2222);
-      } else {
-        enemy = this.scene.add.rectangle(data.x, data.y, 32, 32, 0xff4444);
-      }
-      this.scene.physics.add.existing(enemy);
+      enemy = this.scene.physics.add.sprite(data.x, data.y, 'mushroom_idle', 0);
+      enemy.setScale(3);
+      enemy.anims.play('mushroom_idle', true);
       enemy.body.setCollideWorldBounds(true);
       enemy.body.setBounce(1);
       enemy.body.setImmovable(true);
@@ -62,7 +104,10 @@ export default class EnemyManager1 {
         const idx = this.enemySprites.indexOf(enemy);
         if (idx !== -1) {
           this.enemyData[idx].active = false;
-          enemy.destroy();
+          enemy.anims.play('mushroom_death', true);
+          this.scene.time.delayedCall(400, () => {
+            enemy.destroy();
+          });
           this.enemySprites.splice(idx, 1);
           player.body.setVelocityY(-300);
         }
@@ -85,10 +130,23 @@ export default class EnemyManager1 {
         if (enemy.body.blocked.right) {
           this.enemyData[i].direction = -1;
           enemy.body.setVelocityX(-120);
+          if (enemy.setFlipX) enemy.setFlipX(true);
         } else if (enemy.body.blocked.left) {
           this.enemyData[i].direction = 1;
           enemy.body.setVelocityX(120);
+          if (enemy.setFlipX) enemy.setFlipX(false);
         }
+        // Troca animação para walk se estiver se movendo
+        if (Math.abs(enemy.body.velocity.x) > 0) {
+          enemy.anims.play('mushroom_walk', true);
+          // Inverte o sprite se estiver indo para a esquerda
+          enemy.setFlipX(enemy.body.velocity.x < 0);
+        } else {
+          enemy.anims.play('mushroom_idle', true);
+        }
+      } else {
+        // Se não está ativo, sempre idle
+        enemy.anims.play('mushroom_idle', true);
       }
     });
   }
