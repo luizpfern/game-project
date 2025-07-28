@@ -1,4 +1,3 @@
-
 import Player from '../managers/Player.js';
 import EnemyManager from '../managers/EnemyManager.js';
 import CoinManager from '../managers/CoinManager.js';
@@ -19,6 +18,7 @@ export default class Phase1Scene extends Phaser.Scene {
 
     
     // Carrega o sprite do personagem principal como spritesheet (ajuste frameWidth/frameHeight conforme seu sprite)
+    CoinManager.preload(this);
     Player.preload(this);
     EnemyManager.preload(this);
   }
@@ -83,6 +83,7 @@ export default class Phase1Scene extends Phaser.Scene {
     this.player = this.playerObj.player;
     this.physics.add.collider(this.player, this.platforms);
 
+    CoinManager.createAnimations(this);
     // Moedas (usando CoinManager)
     const coinPositions = [
       { x: 460, y: 500 },
