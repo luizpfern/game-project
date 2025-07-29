@@ -8,8 +8,14 @@ export default class Phase1Scene extends Phaser.Scene {
   }
 
   preload() {
+    // Imagens dos props usados na Object Layer 1
+    this.load.image('grass', 'assets/world/miscellaneous sprites/grass_props.png');
+    this.load.image('bigflower', 'assets/world/miscellaneous sprites/bigflowers_props.png');
+    this.load.image('smallflower', 'assets/world/miscellaneous sprites/flowers_props.png');
+    this.load.image('rightarrow', 'assets/world/miscellaneous sprites/arrow_plate_right.png');
+    this.load.image('spike', 'assets/world/miscellaneous sprites/spikes_trap.png');
     // carrega o novo mapa e tileset
-    this.load.tilemapTiledJSON('mapa', 'assets/world/untitled.json');
+    this.load.tilemapTiledJSON('mapa', 'assets/world/untitled2.json');
     this.load.image('tiles', 'assets/world/tiles and background_foreground (new)/tileset_32x32(new).png');
 
     // Carrega as imagens de fundo para parallax
@@ -24,15 +30,15 @@ export default class Phase1Scene extends Phaser.Scene {
   }
 
   create() {
-  // Efeito Sonic Mania: círculo preto sólido diminui do centro ao iniciar
-  this.circuloTransicaoSonicAbrir();
-  // Flag para controle de surgimento
-  this.spawning = true;
+    console.log('CREATE INICIOU');
+    this.circuloTransicaoSonicAbrir();
+    this.spawning = true;
 
     // Fundo parallax (agora ANTES do mapa)
     const bg0Tex = this.textures.get('bg_0').getSourceImage();
     const bg1Tex = this.textures.get('bg_1').getSourceImage();
     const screenH = this.cameras.main.height;
+    
     // Valores temporários para largura do mapa, substituídos depois
     let tempMapWidth = 3000;
     const scale0 = screenH / bg0Tex.height;
@@ -61,11 +67,34 @@ export default class Phase1Scene extends Phaser.Scene {
     const map = this.make.tilemap({ key: 'mapa' });
     // O nome do tileset deve ser igual ao nome do tileset no Tiled (aqui: 'ground')
     const tileset = map.addTilesetImage('ground', 'tiles');
+    const tileset2 = map.addTilesetImage('ground', 'tiles');
     // Ajuste o nome da camada conforme está no seu untitled.json (ex: 'Tile Layer 1', 'ground', etc)
+    const layer2 = map.createLayer('Tile Layer 2', tileset2, 0, 0);
     const layer = map.createLayer('Tile Layer 1', tileset, 0, 0);
-
     // Ativa colisão para tiles marcados como colidíveis no Tiled
     const result = layer.setCollisionByProperty({ collides: true });
+    const result2 = layer2.setCollisionByProperty({ collides: true });
+
+    // --- OBJETOS DE DECORAÇÃO (Object Layer 1) ---
+    const propObjects = map.getObjectLayer('Object Layer 1');
+    if (propObjects && propObjects.objects && propObjects.objects.length > 0) {
+      propObjects.objects.forEach(obj => {
+        let propKey = null;
+        // Descobre o tipo do prop pelo gid (Tiled)
+        switch (obj.gid) {
+          case 73: propKey = 'grass'; break;
+          case 74: propKey = 'bigflower'; break;
+          case 75: propKey = 'smallflower'; break;
+          case 76: propKey = 'rightarrow'; break;
+        }
+        if (propKey) {
+          this.add.image(obj.x, obj.y, propKey).setOrigin(0, 1).setScale(2);
+        }
+      });
+      console.log('Props decorativos criados:', propObjects.objects.length);
+    } else {
+      console.log('Nenhum objeto decorativo encontrado na Object Layer 1');
+    }
 
 
     // Ajusta limites do mundo para o tamanho do mapa
