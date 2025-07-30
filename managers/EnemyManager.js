@@ -109,7 +109,7 @@ export default class EnemyManager {
             enemy.destroy();
           });
           this.enemySprites.splice(idx, 1);
-          player.body.setVelocityY(-300);
+          player.body.setVelocityY(-400);
         }
       } else {
         if (onPlayerHit) onPlayerHit();
