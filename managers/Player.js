@@ -1,6 +1,11 @@
 
 export default class Player {
   constructor(scene, x, y) {
+    this.isJumping = false;
+    this.jumpTimer = 0;
+    this.maxJumpTime = 160; // ms (pulo máximo mais curto)
+    this.jumpMaxVelocity = -400; // pulo máximo (ajuste aqui)
+    this.jumpMinVelocity = -300; // pulo mínimo (ajuste aqui)
     this.scene = scene;
     this.spawning = true;
     this.player = scene.physics.add.sprite(x, y, 'nico');
@@ -103,15 +108,50 @@ export default class Player {
         this.player.setFlipX(false);
         moving = true;
       }
-      if (btnA && body.blocked.down) {
-        body.setVelocityY(-480);
-      }
       left = left || axisH < -0.2;
       right = right || axisH > 0.2;
       up = up || btnA;
     }
 
-    // Teclado
+    // --- Lógica de pulo estilo Mario ---
+    const jumpPressed = up;
+    const jumpJustPressed = Phaser.Input.Keyboard.JustDown(this.cursors.up) || Phaser.Input.Keyboard.JustDown(this.keys.up) || (pad && pad.connected && Phaser.Input.Gamepad.JustDown(pad.buttons[0]));
+    const now = this.scene.time.now;
+
+    // Debug dos estados do pulo
+    //console.log('[JUMP] pressed:', jumpPressed, '| justPressed:', jumpJustPressed, '| isJumping:', this.isJumping, '| blocked.down:', body.blocked.down, '| timer:', this.jumpTimer, '| now:', now, '| velY:', body.velocity.y);
+
+    if (jumpJustPressed && body.blocked.down && !this.isJumping) {
+      console.log('[JUMP] INICIOU PULO');
+      body.setVelocityY(this.jumpMaxVelocity);
+      this.isJumping = true;
+      this.jumpTimer = now;
+    }
+
+    // Enquanto está pulando e botão está pressionado, permite estender o pulo
+    if (this.isJumping) {
+      if (jumpPressed && (now - this.jumpTimer) < this.maxJumpTime && body.velocity.y < 0) {
+        console.log('[JUMP] ESTENDENDO PULO');
+        body.setVelocityY(this.jumpMaxVelocity);
+      } else if (!jumpPressed && body.velocity.y < 0) {
+        console.log('[JUMP] CORTOU PULO', 'jumpPressed:', jumpPressed, 'velY:', body.velocity.y);
+        body.setVelocityY(this.jumpMinVelocity);
+        this.isJumping = false;
+      } else if (body.velocity.y >= 0 || body.blocked.up) {
+        if (body.velocity.y >= 0) console.log('[JUMP] Começou a cair');
+        if (body.blocked.up) console.log('[JUMP] Bateu no teto');
+        this.isJumping = false;
+      }
+    }
+
+    // Reset de isJumping só quando aterrissar (transição de não encostado para encostado)
+    if (this.wasOnGround === undefined) this.wasOnGround = body.blocked.down;
+    if (!this.wasOnGround && body.blocked.down) {
+      this.isJumping = false;
+    }
+    this.wasOnGround = body.blocked.down;
+
+    // Movimento lateral (teclado)
     if (!pad || !pad.connected) {
       if (left) {
         body.setVelocityX(-160);
@@ -121,9 +161,6 @@ export default class Player {
         body.setVelocityX(160);
         this.player.setFlipX(false);
         moving = true;
-      }
-      if (up && body.blocked.down) {
-        body.setVelocityY(-480);
       }
     }
 
