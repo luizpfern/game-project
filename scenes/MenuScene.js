@@ -18,16 +18,17 @@ export default class MenuScene extends Phaser.Scene {
 
   create() {
 
-    // Fundo do menu ajustado para cobrir a tela sem zoom excessivo
-    const bgImg = this.textures.get('menu-bg').getSourceImage();
-    const bgScaleX = 800 / bgImg.width;
-    const bgScaleY = 600 / bgImg.height;
-    const bgScale = Math.max(bgScaleX, bgScaleY); // cobre toda a tela
-    this.add.image(400, 300, 'menu-bg').setScrollFactor(0).setScale(bgScale);
+  // Fundo do menu ajustado para cobrir a tela sem zoom excessivo
+  const bgImg = this.textures.get('menu-bg').getSourceImage();
+  const bgScaleX = 800 / bgImg.width;
+  const bgScaleY = 600 / bgImg.height;
+  const bgScale = Math.max(bgScaleX, bgScaleY); // cobre toda a tela
+  this.add.image(400, 300, 'menu-bg').setScrollFactor(0).setScale(bgScale);
 
-    // Música de fundo
-    this.menuMusic = this.sound.add('menu-music', { loop: true, volume: 0 });
-    this.menuMusic.play();
+  // Música de fundo
+  this.menuMusic = this.sound.add('menu-music', { loop: true, volume: 0 });
+  this.menuMusic.play();
+  // Removido fundo preto padrão
 
     // Botão mute/desmute
     let isMuted = false;
@@ -88,10 +89,7 @@ export default class MenuScene extends Phaser.Scene {
       if (radius < maxRadius) {
         this.time.delayedCall(20, fechar);
       } else {
-        graphics.clear();
-        graphics.fillStyle(0x000000, 1);
-        graphics.fillRect(0, 0, 800, 600);
-        callback();
+  callback();
       }
     };
     fechar();
