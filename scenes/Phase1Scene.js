@@ -14,6 +14,7 @@ export default class Phase1Scene extends Phaser.Scene {
     this.load.image('smallflower', 'assets/world/miscellaneous sprites/flowers_props.png');
     this.load.image('rightarrow', 'assets/world/miscellaneous sprites/arrow_plate_right.png');
     this.load.image('spike', 'assets/world/miscellaneous sprites/spikes_trap.png');
+
     // carrega o novo mapa e tileset
     this.load.tilemapTiledJSON('mapa', 'assets/world/untitled2.json');
     this.load.image('tiles', 'assets/world/tiles and background_foreground (new)/tileset_32x32(new).png');
@@ -30,7 +31,6 @@ export default class Phase1Scene extends Phaser.Scene {
   }
 
   create() {
-    console.log('CREATE INICIOU');
     this.circuloTransicaoSonicAbrir();
     this.spawning = true;
 
@@ -86,14 +86,39 @@ export default class Phase1Scene extends Phaser.Scene {
           case 74: propKey = 'bigflower'; break;
           case 75: propKey = 'smallflower'; break;
           case 76: propKey = 'rightarrow'; break;
+          case 77: propKey = 'spike'; break;
         }
         if (propKey) {
           this.add.image(obj.x, obj.y, propKey).setOrigin(0, 1).setScale(2);
         }
       });
-      console.log('Props decorativos criados:', propObjects.objects.length);
-    } else {
-      console.log('Nenhum objeto decorativo encontrado na Object Layer 1');
+    }
+    // --- OBJETOS DE DECORAÇÃO (Object Layer 1) ---
+    const propObjects2 = map.getObjectLayer('Object Layer 2');
+    this.spikesRects = [];
+    if (propObjects2 && propObjects2.objects && propObjects2.objects.length > 0) {
+      propObjects2.objects.forEach(obj => {
+        let propKey = null;
+        // Descobre o tipo do prop pelo gid (Tiled)
+        switch (obj.gid) {
+          case 77: propKey = 'spike'; break;
+        }
+        if (propKey) {
+          // Adiciona imagem decorativa
+          const spikeImg = this.add.image(obj.x - 60, obj.y + obj.height - 15, propKey).setOrigin(0, 1).setScale(3.5).setFlipY(true);
+          // Calcula largura e altura reais do spike
+          const spikeWidth = spikeImg.displayWidth;
+          const spikeHeight = spikeImg.displayHeight;
+          // Cria sprite invisível para detecção de colisão
+          const spikeSensor = this.physics.add.sprite(obj.x - 33, obj.y + obj.height - 44, null);
+          spikeSensor.setOrigin(0, 0);
+          spikeSensor.body.setAllowGravity(false);
+          spikeSensor.body.setImmovable(true);
+          spikeSensor.body.setSize(spikeWidth * 1.3, spikeHeight * 1.3);
+          spikeSensor.setVisible(false); // invisível
+          this.spikesRects.push(spikeSensor);
+        }
+      });
     }
 
 
@@ -131,6 +156,18 @@ export default class Phase1Scene extends Phaser.Scene {
     ];
     this.coinManager = new CoinManager(this, coinPositions);
     this.coinManager.setupPlayerOverlap(this.player);
+
+    // Adiciona colisão física entre o jogador e os spikes
+    this.spikesRects.forEach((sensor) => {
+      if (sensor && sensor.body) {
+        this.physics.add.overlap(this.player, sensor, () => {
+          if (!this.playerIsDead) {
+            this.playerIsDead = true;
+            this.scene.restart();
+          }
+        });
+      }
+    });
 
 
     // Lista de inimigos específica para este mapa
