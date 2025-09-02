@@ -3,4 +3,4 @@ During my vacation, I started developing a simple 2D platformer using the <a hre
 
 The game is still a work in progress, but I’ll keep updating it whenever I have some time.
 
-The game is now uploaded on Vercel, try it
+The game is now uploaded on Vercel, try it [here](https://your-vercel-url.vercel.app)
