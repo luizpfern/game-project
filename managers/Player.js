@@ -118,11 +118,8 @@ export default class Player {
     const jumpJustPressed = Phaser.Input.Keyboard.JustDown(this.cursors.up) || Phaser.Input.Keyboard.JustDown(this.keys.up) || (pad && pad.connected && Phaser.Input.Gamepad.JustDown(pad.buttons[0]));
     const now = this.scene.time.now;
 
-    // Debug dos estados do pulo
-    //console.log('[JUMP] pressed:', jumpPressed, '| justPressed:', jumpJustPressed, '| isJumping:', this.isJumping, '| blocked.down:', body.blocked.down, '| timer:', this.jumpTimer, '| now:', now, '| velY:', body.velocity.y);
 
     if (jumpJustPressed && body.blocked.down && !this.isJumping) {
-      console.log('[JUMP] INICIOU PULO');
       body.setVelocityY(this.jumpMaxVelocity);
       this.isJumping = true;
       this.jumpTimer = now;
@@ -131,15 +128,11 @@ export default class Player {
     // Enquanto está pulando e botão está pressionado, permite estender o pulo
     if (this.isJumping) {
       if (jumpPressed && (now - this.jumpTimer) < this.maxJumpTime && body.velocity.y < 0) {
-        console.log('[JUMP] ESTENDENDO PULO');
         body.setVelocityY(this.jumpMaxVelocity);
       } else if (!jumpPressed && body.velocity.y < 0) {
-        console.log('[JUMP] CORTOU PULO', 'jumpPressed:', jumpPressed, 'velY:', body.velocity.y);
         body.setVelocityY(this.jumpMinVelocity);
         this.isJumping = false;
       } else if (body.velocity.y >= 0 || body.blocked.up) {
-        if (body.velocity.y >= 0) console.log('[JUMP] Começou a cair');
-        if (body.blocked.up) console.log('[JUMP] Bateu no teto');
         this.isJumping = false;
       }
     }
