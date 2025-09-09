@@ -84,38 +84,14 @@ export default class Player {
     if (this.spawning) return;
     let moving = false;
 
-    // Suporte ao controle de Xbox/8BitDo (gamepad)
-    let pad = null;
-    let pads = [];
-    if (this.scene.input.gamepad && this.scene.input.gamepad.total) {
-      pads = this.scene.input.gamepad.gamepads.filter(gp => gp && gp.connected);
-      if (pads.length > 0) pad = pads[0];
-    }
-    let left = (this.cursors.left && this.cursors.left.isDown) || (this.keys.left && this.keys.left.isDown);
-    let right = (this.cursors.right && this.cursors.right.isDown) || (this.keys.right && this.keys.right.isDown);
-    let up = (this.cursors.up && this.cursors.up.isDown) || (this.keys.up && this.keys.up.isDown);
-
-    if (pad && pad.connected) {
-      const axisH = pad.axes.length > 0 ? pad.axes[0].getValue() : 0;
-      const btnA = pad.buttons[0].pressed;
-
-      if (axisH < -0.2) {
-        body.setVelocityX(-160);
-        this.player.setFlipX(true);
-        moving = true;
-      } else if (axisH > 0.2) {
-        body.setVelocityX(160);
-        this.player.setFlipX(false);
-        moving = true;
-      }
-      left = left || axisH < -0.2;
-      right = right || axisH > 0.2;
-      up = up || btnA;
-    }
+  // Controles do teclado
+  let left = (this.cursors.left && this.cursors.left.isDown) || (this.keys.left && this.keys.left.isDown);
+  let right = (this.cursors.right && this.cursors.right.isDown) || (this.keys.right && this.keys.right.isDown);
+  let up = (this.cursors.up && this.cursors.up.isDown) || (this.keys.up && this.keys.up.isDown);
 
     // --- Lógica de pulo estilo Mario ---
-    const jumpPressed = up;
-    const jumpJustPressed = Phaser.Input.Keyboard.JustDown(this.cursors.up) || Phaser.Input.Keyboard.JustDown(this.keys.up) || (pad && pad.connected && Phaser.Input.Gamepad.JustDown(pad.buttons[0]));
+  const jumpPressed = up;
+  const jumpJustPressed = Phaser.Input.Keyboard.JustDown(this.cursors.up) || Phaser.Input.Keyboard.JustDown(this.keys.up);
     const now = this.scene.time.now;
 
 
@@ -145,16 +121,14 @@ export default class Player {
     this.wasOnGround = body.blocked.down;
 
     // Movimento lateral (teclado)
-    if (!pad || !pad.connected) {
-      if (left) {
-        body.setVelocityX(-160);
-        this.player.setFlipX(true);
-        moving = true;
-      } else if (right) {
-        body.setVelocityX(160);
-        this.player.setFlipX(false);
-        moving = true;
-      }
+    if (left) {
+      body.setVelocityX(-160);
+      this.player.setFlipX(true);
+      moving = true;
+    } else if (right) {
+      body.setVelocityX(160);
+      this.player.setFlipX(false);
+      moving = true;
     }
 
     // Animações
