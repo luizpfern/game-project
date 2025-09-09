@@ -4,8 +4,8 @@ export default class Player {
     this.isJumping = false;
     this.jumpTimer = 0;
     this.maxJumpTime = 160; // ms (pulo máximo mais curto)
-    this.jumpMaxVelocity = -400; // pulo máximo (ajuste aqui)
-    this.jumpMinVelocity = -300; // pulo mínimo (ajuste aqui)
+    this.jumpMaxVelocity = -400; // pulo máximo
+    this.jumpMinVelocity = -300; // pulo mínimo
     this.scene = scene;
     this.spawning = true;
     this.player = scene.physics.add.sprite(x, y, 'nico');
@@ -27,7 +27,6 @@ export default class Player {
       down: Phaser.Input.Keyboard.KeyCodes.S,
       right: Phaser.Input.Keyboard.KeyCodes.D
     });
-    // ...sem debug visual...
   }
 
   static preload(scene) {
@@ -58,13 +57,13 @@ export default class Player {
     });
     this.scene.anims.create({
       key: 'jump',
-      frames: [ { key: 'nico', frame: 250 } ],
+      frames: [{ key: 'nico', frame: 250 }],
       frameRate: 1,
       repeat: -1
     });
     this.scene.anims.create({
       key: 'fall',
-      frames: [ { key: 'nico', frame: 385 } ],
+      frames: [{ key: 'nico', frame: 385 }],
       frameRate: 1,
       repeat: -1
     });
@@ -73,7 +72,7 @@ export default class Player {
   update() {
     const body = this.player.body;
     body.setVelocityX(0);
-    // Ajuste de hitbox conforme estado
+    // Ajuste de hitbox conforme esta
     if (!body.blocked.down) {
       this.player.setSize(18, 14);
       this.player.setOffset(7, 18);
@@ -84,16 +83,14 @@ export default class Player {
     if (this.spawning) return;
     let moving = false;
 
-  // Controles do teclado
-  let left = (this.cursors.left && this.cursors.left.isDown) || (this.keys.left && this.keys.left.isDown);
-  let right = (this.cursors.right && this.cursors.right.isDown) || (this.keys.right && this.keys.right.isDown);
-  let up = (this.cursors.up && this.cursors.up.isDown) || (this.keys.up && this.keys.up.isDown);
+    // Controles do teclado
+    let left = (this.cursors.left && this.cursors.left.isDown) || (this.keys.left && this.keys.left.isDown);
+    let right = (this.cursors.right && this.cursors.right.isDown) || (this.keys.right && this.keys.right.isDown);
+    let up = (this.cursors.up && this.cursors.up.isDown) || (this.keys.up && this.keys.up.isDown);
 
-    // --- Lógica de pulo estilo Mario ---
-  const jumpPressed = up;
-  const jumpJustPressed = Phaser.Input.Keyboard.JustDown(this.cursors.up) || Phaser.Input.Keyboard.JustDown(this.keys.up);
+    const jumpPressed = up;
+    const jumpJustPressed = Phaser.Input.Keyboard.JustDown(this.cursors.up) || Phaser.Input.Keyboard.JustDown(this.keys.up);
     const now = this.scene.time.now;
-
 
     if (jumpJustPressed && body.blocked.down && !this.isJumping) {
       body.setVelocityY(this.jumpMaxVelocity);
@@ -101,7 +98,7 @@ export default class Player {
       this.jumpTimer = now;
     }
 
-    // Enquanto está pulando e botão está pressionado, permite estender o pulo
+    // Estende o pulo enquanto o botão está pressionado
     if (this.isJumping) {
       if (jumpPressed && (now - this.jumpTimer) < this.maxJumpTime && body.velocity.y < 0) {
         body.setVelocityY(this.jumpMaxVelocity);
