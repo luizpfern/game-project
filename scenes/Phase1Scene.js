@@ -110,16 +110,24 @@ export default class Phase1Scene extends Phaser.Scene {
         if (propKey) {
           // Adiciona imagem decorativa
           const spikeImg = this.add.image(obj.x - 60, obj.y + obj.height - 15, propKey).setOrigin(0, 1).setScale(3.5).setFlipY(true);
-          // Calcula largura e altura reais do spike
           const spikeWidth = spikeImg.displayWidth;
           const spikeHeight = spikeImg.displayHeight;
-          // Cria sprite invisível para detecção de colisão
-          const spikeSensor = this.physics.add.sprite(obj.x - 33, obj.y + obj.height - 44, null);
+
+          // Hitbox menor que o sprite (margem) e centralizada — evita lado direito maior
+          const marginX = spikeWidth * 0.18;
+          const marginY = spikeHeight * 0.12;
+          const hitW = spikeWidth - marginX * 2;
+          const hitH = spikeHeight - marginY * 2;
+          const spikeSensor = this.physics.add.sprite(
+            spikeImg.x + marginX,
+            spikeImg.y - spikeHeight + marginY,
+            null
+          );
           spikeSensor.setOrigin(0, 0);
           spikeSensor.body.setAllowGravity(false);
           spikeSensor.body.setImmovable(true);
-          spikeSensor.body.setSize(spikeWidth * 1.3, spikeHeight * 1.3);
-          spikeSensor.setVisible(false); // invisível
+          spikeSensor.body.setSize(hitW, hitH);
+          spikeSensor.setVisible(false);
           this.spikesRects.push(spikeSensor);
         }
       });
