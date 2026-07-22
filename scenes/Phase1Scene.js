@@ -38,11 +38,13 @@ export default class Phase1Scene extends Phaser.Scene {
     const bg0Tex = this.textures.get('bg_0').getSourceImage();
     const bg1Tex = this.textures.get('bg_1').getSourceImage();
     const screenH = this.cameras.main.height;
+    // +2px evita linha de 1 pixel vazando na borda inferior (arredondamento)
+    const coverH = screenH + 2;
     
     // Valores temporários para largura do mapa, substituídos depois
     let tempMapWidth = 3000;
-    const scale0 = screenH / bg0Tex.height;
-    const scale1 = screenH / bg1Tex.height;
+    const scale0 = coverH / bg0Tex.height;
+    const scale1 = coverH / bg1Tex.height;
     const scaledBg0Width = bg0Tex.width * scale0;
     const scaledBg1Width = bg1Tex.width * scale1;
     const repeatCount0 = Math.ceil(tempMapWidth / scaledBg0Width);
@@ -59,7 +61,9 @@ export default class Phase1Scene extends Phaser.Scene {
       bg1.setScale(scale1);
       this.bg1s.push(bg1);
     }
-    this.cameras.main.setBackgroundColor('#fff');
+    // Cor do céu do parallax (evita linha branca vazando nas bordas)
+    this.cameras.main.setBackgroundColor('#c17a5c');
+    this.cameras.main.roundPixels = true;
     this.playerIsDead = false;
 
     // --- MAPA DO TILED ---
@@ -186,8 +190,8 @@ export default class Phase1Scene extends Phaser.Scene {
       this.scene.restart();
     });
 
-    // Configura limites do mundo e câmera dinâmica
-    this.physics.world.setBounds(0, 0, this.mapWidth, this.mapHeight);
+    // Limites do mundo: colide nas laterais/topo, mas NÃO no fundo (void)
+    this.physics.world.setBounds(0, 0, this.mapWidth, this.mapHeight, true, true, true, false);
     this.cameras.main.setBounds(0, 0, this.mapWidth, this.mapHeight);
     this.cameras.main.startFollow(this.player, true, 0.08, 0.08);
 
@@ -206,8 +210,8 @@ export default class Phase1Scene extends Phaser.Scene {
     // Atualiza o jogador
     this.playerObj.update();
 
-    // Matar o jogador se cair no abismo (abaixo do mapa)
-    if (!this.playerIsDead && this.player.y > 600) {
+    // Matar o jogador se cair no void (abaixo do mapa)
+    if (!this.playerIsDead && this.player.y > this.mapHeight) {
       this.playerIsDead = true;
       this.scene.restart();
     }

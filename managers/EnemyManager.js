@@ -118,7 +118,19 @@ export default class EnemyManager {
   }
 
   update(player) {
-    this.enemySprites.forEach((enemy, i) => {
+    const voidY = this.scene.mapHeight || 608;
+
+    for (let i = this.enemySprites.length - 1; i >= 0; i--) {
+      const enemy = this.enemySprites[i];
+
+      // Remove inimigo que caiu no void
+      if (enemy.y > voidY) {
+        enemy.destroy();
+        this.enemySprites.splice(i, 1);
+        this.enemyData.splice(i, 1);
+        continue;
+      }
+
       const dist = Phaser.Math.Distance.Between(player.x, player.y, enemy.x, enemy.y);
       if (!this.enemyData[i].active && dist < 300) {
         this.enemyData[i].active = true;
@@ -148,6 +160,6 @@ export default class EnemyManager {
         // Se não está ativo, sempre idle
         enemy.anims.play('mushroom_idle', true);
       }
-    });
+    }
   }
 }
