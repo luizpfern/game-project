@@ -130,7 +130,11 @@ export default class Player {
       if (jumpPressed && (now - this.jumpTimer) < this.maxJumpTime && body.velocity.y < 0) {
         body.setVelocityY(this.jumpMaxVelocity);
       } else if (!jumpPressed && body.velocity.y < 0) {
-        body.setVelocityY(this.jumpMinVelocity);
+        // Só corta o pulo se ainda estiver subindo mais rápido que o mínimo.
+        // Perto do ápice a velocidade já é menor (ex: -50); forçar -300 causava um "pulinho" extra.
+        if (body.velocity.y < this.jumpMinVelocity) {
+          body.setVelocityY(this.jumpMinVelocity);
+        }
         this.isJumping = false;
       } else if (body.velocity.y >= 0 || body.blocked.up) {
         this.isJumping = false;
